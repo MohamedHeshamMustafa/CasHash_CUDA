@@ -5,6 +5,8 @@
 #include "KeyFileReader.h"
 #include "HashConverter.h"
 #include "HashMatcher.h"
+#include <boost/filesystem.hpp>
+
 
 int main(int argc, char **argv) {
     if(argc != 3) {
@@ -25,13 +27,20 @@ int main(int argc, char **argv) {
     cudaEvent_t start, stop;
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
+	std::string delimeter = "\\";
+	std::string output_dir_name = argv[2] + delimeter;
+    FILE *outFile = fopen(output_dir_name.c_str(), "w");
 
-    FILE *outFile = fopen(argv[2], "w");
+
+	boost::filesystem::path output_dir(output_dir_name);
+	if (boost::filesystem::create_directory(output_dir)) {
+		std::cout << "Output directory created" << std::endl;
+	}
 
     cudaEventRecord(start);
 
     for(int imageIndex = 0; imageIndex < keyFileReader.cntImage; imageIndex++) {
-        ImageDevice newImage;
+        ImageDevice newImage;	
 
         std::cerr << "---------------------\nUploading image #" << imageIndex << " to GPU...\n";
         cudaEvent_t kfFinishEvent = keyFileReader.UploadImageAsync(newImage, imageIndex);

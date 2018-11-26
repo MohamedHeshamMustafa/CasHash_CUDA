@@ -6,6 +6,11 @@
 #include <cuda_runtime.h>
 #include <stdlib.h>
 #include <cstring>
+#include <string>
+#include <vector>
+
+
+using namespace boost::filesystem;
 
 KeyFileReader::KeyFileReader() {
     std::memset(siftAccumulator_, 0, sizeof(siftAccumulator_));
@@ -61,7 +66,49 @@ void KeyFileReader::AddKeyFile( const char *path ) {
     cntImage = h_imageList_.size();
 }
 
+//Etsh`s play ground (getting the input directory of the mac files and listing them) 
+struct path_leaf_string {
+	std::string
+		operator()(const boost::filesystem::directory_entry &entry) const
+	{
+		return entry.path().leaf().string();
+	}
+};
+
+void read_directory(const std::string &name, std::vector<std::string> &v)
+{
+	boost::filesystem::path p(name);
+	boost::filesystem::directory_iterator start(p);
+	boost::filesystem::directory_iterator end;
+	std::transform(start, end, std::back_inserter(v), path_leaf_string());
+}
+
 void KeyFileReader::OpenKeyList( const char *path ) {
+	std::string keyList(path);
+
+	//std::cout << keyList << std::endl;
+
+	if(keyList.empty()) {
+		fprintf(stderr, "Keylist direcotry %s does not exist!\n", path);
+		exit(EXIT_FAILURE);
+	}
+
+	std::vector<std::string> dirlist;
+	read_directory(path, dirlist);
+
+	std::string keyFilePath;
+	for (int i = 0; i < dirlist.size(); i += 1) {
+			
+		keyFilePath = keyList + "\\" + dirlist[i];
+			AddKeyFile(keyFilePath.c_str());
+
+	}
+
+
+}
+
+
+/*void KeyFileReader::OpenKeyList( const char *path ) {
     FILE *keyList = fopen(path, "r");
     char keyFilePath[256];
     if(keyList == NULL) {
@@ -72,7 +119,7 @@ void KeyFileReader::OpenKeyList( const char *path ) {
         AddKeyFile(keyFilePath);
     }
     fclose(keyList);
-}
+}*/
 
 void KeyFileReader::ZeroMeanProc() {
     SiftData_t mean[kDimSiftData];
