@@ -1,6 +1,7 @@
 #include "KeyFileReader.h"
 #include "Share.h"
 
+#include <boost/filesystem.hpp>
 #include <stdio.h>
 #include <cuda_runtime.h>
 #include <stdlib.h>

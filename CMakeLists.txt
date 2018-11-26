@@ -17,12 +17,13 @@ if( NOT cmake_build_type_tolower STREQUAL "debug"
 endif()
 
 if(cmake_build_type_tolower STREQUAL "debug")
-  list(APPEND CMAKE_CXX_FLAGS "-Wall -Wno-long-long")
+  #list(APPEND CMAKE_CXX_FLAGS "-Wall -Wno-long-long")
   #add_definitions(-DDEBUG_HASH_MATCHER)
   #add_definitions(-DDEBUG_HASH_CONVERTER2)
 endif()
 
 find_package(CUDA REQUIRED)
+find_package(Boost REQUIRED filesystem)
 
 # Kepler
 #list(APPEND CUDA_NVCC_FLAGS "-gencode arch=compute_30,code=sm_30")
@@ -73,6 +74,9 @@ target_link_libraries(
    TestHashMatcher
    curand)
 
+   include_directories(
+  ${Boost_INCLUDE_DIRS}
+   )
 cuda_add_executable(KeyMatchCUDA
   src/main.cpp
   src/KeyFileReader.cpp
@@ -82,9 +86,13 @@ cuda_add_executable(KeyMatchCUDA
   src/HashMatcher.cu
   )
 
-target_link_libraries(
-   KeyMatchCUDA
-   curand)
+  target_link_libraries(
+  KeyMatchCUDA
+  curand
+  Boost::filesystem
+  )
+
+
 
 # For HHLR
 configure_file(job.sh.in job.sh @ONLY)

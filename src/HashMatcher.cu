@@ -1,6 +1,6 @@
 #include "HashMatcher.h"
 
-#include "cub/cub.cuh"
+#include <cub/cub.cuh>
 
 
 struct DistIndexPair {
@@ -223,7 +223,7 @@ __global__ void GeneratePairKernelFast(Matrix<HashData_t> g_queryImageBucketID,
     }
 
     DistIndexPair candidate;
-    candidate.dist = MAX_SIFT_DISTANCE;
+    candidate.dist = 1.0e38f;
 
     if(threadIdx.x < POSSIBLE_CANDIDATES) {
         candidate.index = s_lastTopVectors[threadIdx.x];
@@ -249,7 +249,7 @@ __global__ void GeneratePairKernelFast(Matrix<HashData_t> g_queryImageBucketID,
 
     if(threadIdx.x == 0) {
         candidate.index = INVALID_CANDIDATE;
-        candidate.dist = MAX_SIFT_DISTANCE;
+        candidate.dist = 1.0e38f;
     }
 
     min2 = BlockReduceT(tempStorage.reduce).Reduce(candidate, minDistOp, POSSIBLE_CANDIDATES);
