@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <string>
 #include <iostream>
 
 #include "KeyFileReader.h"
@@ -28,14 +29,16 @@ int main(int argc, char **argv) {
     cudaEventCreate(&start);
     cudaEventCreate(&stop);
 	std::string delimeter = "\\";
-	std::string output_dir_name = argv[2] + delimeter;
+	std::string output_dir_name = argv[2] + delimeter + "output.txt";
     FILE *outFile = fopen(output_dir_name.c_str(), "w");
 
+	std::cout << "Output file is " << output_dir_name << '\n';
 
-	boost::filesystem::path output_dir(output_dir_name);
-	if (boost::filesystem::create_directory(output_dir)) {
-		std::cout << "Output directory created" << std::endl;
-	}
+
+	//boost::filesystem::path output_dir(output_dir_name);
+	//if (boost::filesystem::create_directory(output_dir)) {
+	//	std::cout << "Output directory created" << std::endl;
+	//}
 
     cudaEventRecord(start);
 
@@ -48,12 +51,18 @@ int main(int argc, char **argv) {
         std::cerr << "Calculating compressed Hash Values for image #" << imageIndex << "\n"; 
         cudaEvent_t hcFinishEvent = hashConverter.CalcHashValuesAsync(newImage, kfFinishEvent);
 
-        std::cerr << "Matching image #" << imageIndex << " with previous images...\n";
+        std::cout << "Matching image #" << imageIndex << " with previous images...\n";
         hashMatcher.AddImageAsync(newImage, hcFinishEvent);
 
+		std::cout << "Before:\n";
         for(int imageIndex2 = 0; imageIndex2 < imageIndex; imageIndex2++) {
+			std::cout << "\n\t" << imageIndex << '\n';
+
+
             MatchPairListPtr mpList = hashMatcher.MatchPairList(imageIndex, imageIndex2);
             int pairCount = hashMatcher.NumberOfMatch(imageIndex, imageIndex2);
+
+			std::cout << "imageIndex2 " << pairCount << "\n";
 
             fprintf(outFile, "%d %d\n%d\n", imageIndex2, imageIndex, pairCount);
 
@@ -61,6 +70,7 @@ int main(int argc, char **argv) {
                 fprintf(outFile, "%d %d\n", it->second, it->first);
             }
         }
+		std::cout << "After:\n";
 
     }
 
